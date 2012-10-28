@@ -1,5 +1,24 @@
 # See: http://code.google.com/p/arduino/wiki/Platforms
 
+#############################################################
+
+brain.name=CalSol Brain V2.0 (v0025)
+brain.upload.protocol=stk500
+brain.upload.maximum_size=30720
+brain.upload.speed=19200
+brain.upload.verbose=true
+brain.bootloader.low_fuses=0xFF
+brain.bootloader.high_fuses=0xDC
+brain.bootloader.extended_fuses=0xFD
+brain.bootloader.path=atmega324p
+brain.bootloader.file=ADABoot_328.hex
+brain.bootloader.unlock_bits=0x3F
+brain.bootloader.lock_bits=0x0F
+brain.build.mcu=atmega324p
+brain.build.f_cpu=20000000L
+brain.build.core=arduino
+brain.build.variant=brain
+
 ##############################################################
 
 uno.name=Arduino Uno
