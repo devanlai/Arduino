@@ -1,4 +1,5 @@
 #include "mcp2515.h"
+#include <Arduino.h>
 #include <SPI.h>
 
 /* Implicitly required emtpy constructor */
