@@ -1,0 +1,34 @@
+#######################################
+# Syntax Coloring Map SPICAN
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+CAN	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+begin			KEYWORD2
+end				KEYWORD2
+frequency		KEYWORD2
+available		KEYWORD2
+send			KEYWORD2
+recv			KEYWORD2
+setFilter		KEYWORD2
+setMask			KEYWORD2
+filterOn		KEYWORD2
+filterOff		KEYWORD2
+reset			KEYWORD2
+config			KEYWORD2
+monitor			KEYWORD2
+attach			KEYWORD2
+detach			KEYWORD2
+rxError			KEYWORD2
+txError			KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
