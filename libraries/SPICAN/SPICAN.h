@@ -25,7 +25,7 @@ class SPICAN
 {
   public:
     SPICAN(int CsPin, int IntPin);
-    void begin(int hz, bool do_reset = true);
+    void begin(int hz, bool do_reset = true, bool do_interrupt = true);
     int frequency(int khz);
     int available();
     boolean interrupted();
@@ -42,11 +42,18 @@ class SPICAN
     void detach();
     unsigned int rxError();
     unsigned int txError();
+	void enableInterrupt();
+	void disableInterrupt();
+	void handleInterrupt();
     void (*_func)(CanMessage &msg);
   private:
     int _CsPin;
     int _IntPin;
     int _Freq;
+    volatile uint8_t* _PCICR;
+    volatile uint8_t* _PCMSK;
+    uint8_t  _PortMask;
+    uint8_t  _PinMask;
     Mcp2515 _mcp2515;
 };
 
@@ -56,6 +63,16 @@ extern void CanBufferInit();
 extern CanMessage CanBufferRead();
 extern int CanBufferSize();
 */
+
+#ifndef CAN_NO_INTERRUPTS
+
+#ifndef CAN_PCINT_COUNT
+#define CAN_PCINT_COUNT 4
+#endif
+
+extern SPICAN* PortToCAN[CAN_PCINT_COUNT];
+
+#endif
 
 #ifdef HAVE_CAN
 extern SPICAN CAN;

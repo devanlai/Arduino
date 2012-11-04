@@ -26,19 +26,78 @@ CanMessage::CanMessage(int _id, const char * _data, char _len) {
   len = _len;
 }
 
+#ifndef CAN_NO_INTERRUPTS
+#define DISABLE_INTERRUPT() *_PCICR &=~ _PortMask
+#define ENABLE_INTERRUPT()  *_PCICR |=  _PortMask
+#else
+#define DISABLE_INTERRUPT()
+#define ENABLE_INTERRUPT()
+#endif
+
+#ifndef CAN_NO_INTERRUPTS
+SPICAN* PortToCAN[CAN_PCINT_COUNT] = {NULL};
+
+#ifdef HAVE_CAN
+extern SPICAN CAN(CAN_CS, CAN_INT);
+#endif
+
+//Soft interrupt handlers - if you define CAN_RESERVE_PCINTx,
+//then you can define your own PCINTx ISR
+//If you define CAN_NO_INTERRUPTS, no ISRs will be defined
+
+#if defined(PCINT0_vect) && !defined(CAN_RESERVE_PCINT0)
+ISR(PCINT0_vect) {
+	if (PortToCAN[0])
+		PortToCAN[0]->handleInterrupt();
+}
+#endif
+
+#if defined(PCINT1_vect) && !defined(CAN_RESERVE_PCINT1)
+ISR(PCINT1_vect) {
+	if (PortToCAN[1])
+		PortToCAN[1]->handleInterrupt();
+}
+#endif
+
+#if defined(PCINT2_vect) && !defined(CAN_RESERVE_PCINT2)
+ISR(PCINT2_vect) {
+	if (PortToCAN[2])
+		PortToCAN[2]->handleInterrupt();
+}
+#endif
+
+#if defined(PCINT3_vect) && !defined(CAN_RESERVE_PCINT3)
+ISR(PCINT3_vect) {
+	if (PortToCAN[3])
+		PortToCAN[3]->handleInterrupt();
+}
+#endif
+
+#endif
+
 SPICAN::SPICAN(int CsPin, int IntPin) {
   _CsPin = CsPin;
   _IntPin = IntPin;
+  _PCICR = digitalPinToPCICR(IntPin);
+  _PCMSK = digitalPinToPCMSK(IntPin);
+  _PortMask = _BV(digitalPinToPCICRbit(IntPin));
+  _PinMask = _BV(digitalPinToPCMSKbit(IntPin));
   _mcp2515 = Mcp2515(CsPin);
+  _func = NULL;
 }
 
 // Set the MCP2515 to start listening
-void SPICAN::begin(int Freq, bool do_reset) {
+void SPICAN::begin(int Freq, bool do_reset, bool do_interrupt) {
   if (do_reset)
     reset();
   frequency(Freq);
+#ifndef CAN_NO_INTERRUPT
   // Enable interrupt on the int pin when either RX buffer are filled
-  _mcp2515.write(CANINTE, 0x03);
+  if (do_interrupt) {
+	  _mcp2515.write(CANINTE, 0x03);
+	  this->enableInterrupt();
+  }
+#endif
   // Start listening in normal mode
   monitor(0);
 }
@@ -106,9 +165,9 @@ boolean SPICAN::interrupted() {
 
 /* Sends can message. 0 on success, 1 on error */
 int SPICAN::send(CanMessage msg) {
-  PCICR &=~ 0x02;  // Disable PC1 Interrupt
+  DISABLE_INTERRUPT();  //Disable CAN interrupt
   _mcp2515.send(msg.len, msg.id, msg.data);
-  PCICR |= 0x02;   // Re-enable PC1 interrupt
+  ENABLE_INTERRUPT();   // Re-enable CAN interrupt
   return 0;
 }
 
@@ -218,36 +277,65 @@ void SPICAN::attach(void (*func)(CanMessage &msg)) {
 
 /* Detaches the packet receive callback */
 void SPICAN::detach() {
-  _func = 0;
+  _func = NULL;
 }
 
 /* Returns number of RX errors */
 unsigned int SPICAN::rxError() {
   // Read Receieve error count register
-  PCICR &=~ 0x02;
+  DISABLE_INTERRUPT();  //Disable CAN interrupt
   unsigned int result = 0xFF & _mcp2515.read(REC);
-  PCICR |= 0x02;   // Re-enable PC1 interrupt
+  ENABLE_INTERRUPT();  //Disable CAN interrupt
   return result;
 }
 
 /* Returns number of TX errors */
 unsigned int SPICAN::txError() {
   // Read Transmit error count register
-  PCICR &=~ 0x02;
+  DISABLE_INTERRUPT();  //Disable CAN interrupt
   unsigned int result = 0xFF & _mcp2515.read(TEC);
-  PCICR |= 0x02;   // Re-enable PC1 interrupt
+  ENABLE_INTERRUPT();  //Disable CAN interrupt
   return result;
 }
 
-#ifdef HAVE_CAN
 
-SPICAN CAN(CAN_CS, CAN_INT);
-
-#ifndef Can
-#define Can CAN
+void SPICAN::enableInterrupt() {
+	*_PCMSK |= _PinMask;
+    *_PCICR |= _PortMask;
+#ifndef CAN_NO_INTERRUPTS
+	PortToCAN[digitalPinToPCICRbit(_IntPin)] = this;
 #endif
+}
 
+void SPICAN::disableInterrupt() {
+    *_PCMSK &=~ _PinMask;
+    *_PCICR &=~ _PortMask;
+#ifndef CAN_NO_INTERRUPTS
+	int port = digitalPinToPCICRbit(_IntPin); 
+	if (PortToCAN[port] == this) {
+		PortToCAN[port] = NULL;
+	}
 #endif
+}
+
+void SPICAN::handleInterrupt() {
+	if (digitalRead(_IntPin) != LOW) {
+		return;
+	}
+	int available;
+	CanMessage packet;
+	do {
+		available = this->available();
+		if (_func != NULL) {
+			this->recv(available, packet);
+			this->_func(packet);
+			continue;
+		} else {
+			//Blah blah buffer logic here
+		}
+	} while (available);
+}
+
 
 // // Init an instance for the CalSol Brain
 // SPICAN Can = SPICAN(4, 3);
