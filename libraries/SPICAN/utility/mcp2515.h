@@ -1,6 +1,7 @@
 /*
-  Mcp2515.h - Low level library for interfacing with the mcp2515
+  mcp2515.h - Low level library for interfacing with the mcp2515
   Created by Ryan Tseng, Oct. 5th 2010.
+  Ported to Arduino 1.0.1 by Devan Lai, Nov. 3rd 2012.
 */
 
 #ifndef Mcp2515_h

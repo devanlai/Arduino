@@ -1,5 +1,5 @@
 #include "mcp2515.h"
-#include "SPI.h"
+#include <SPI.h>
 
 /* Implicitly required emtpy constructor */
 Mcp2515::Mcp2515() {};

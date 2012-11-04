@@ -1,12 +1,13 @@
 /*
-  Can.h - Library for interfacing with the MCP2515.
+  SPICAN.h - Library for interfacing with the MCP2515.
   Created by Ryan Tseng, Oct. 5th 2010.
+  Ported to Arduino 1.0.1 by Devan Lai, Nov. 3rd 2012.
 */
-#ifndef Can_h
-#define Can_h
+#ifndef SPI_CAN_h
+#define SPI_CAN_h
 
-#include "WProgram.h"
-#include "mcp2515.h"
+#include <Arduino.h>
+#include <utility/mcp2515.h>
 
 #define CAN_BUFFER_SIZE 30
 
@@ -20,10 +21,10 @@ class CanMessage {
     char len;
 };
 
-class HardwareCan
+class SPICAN
 {
   public:
-    HardwareCan(int CsPin, int IntPin);
+    SPICAN(int CsPin, int IntPin);
     void begin(int hz, bool do_reset = true);
     int frequency(int khz);
     int available();
@@ -49,11 +50,15 @@ class HardwareCan
     Mcp2515 _mcp2515;
 };
 
-
+/*
 void CanReadHandler();
 extern void CanBufferInit();
 extern CanMessage CanBufferRead();
 extern int CanBufferSize();
-extern HardwareCan Can;
+*/
+
+#ifdef HAVE_CAN
+extern SPICAN CAN;
+#endif
 
 #endif

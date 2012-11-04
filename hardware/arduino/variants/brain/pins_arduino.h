@@ -51,6 +51,10 @@ static const uint8_t A5 = 26;
 static const uint8_t A6 = 25;
 static const uint8_t A7 = 24;
 
+#define HAVE_CAN
+static const uint8_t CAN_CS = 4;
+static const uint8_t CAN_INT = 3;
+
 //XXX: Not familiar enough with interrupt handlers on the ATMega324P, so
 //no guarantee that this works. Don't see why anyone would use software
 //serial instead of just using one of the two UARTs.
