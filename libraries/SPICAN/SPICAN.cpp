@@ -91,11 +91,11 @@ void SPICAN::begin(int Freq, bool do_reset, bool do_interrupt) {
   if (do_reset)
     reset();
   frequency(Freq);
-#ifndef CAN_NO_INTERRUPT
+#ifndef CAN_NO_INTERRUPTS
   // Enable interrupt on the int pin when either RX buffer are filled
   if (do_interrupt) {
-	  _mcp2515.write(CANINTE, 0x03);
-	  this->enableInterrupt();
+    _mcp2515.write(CANINTE, 0x03);
+    this->enableInterrupt();
   }
 #endif
   // Start listening in normal mode
@@ -300,7 +300,7 @@ unsigned int SPICAN::txError() {
 
 
 void SPICAN::enableInterrupt() {
-	*_PCMSK |= _PinMask;
+    *_PCMSK |= _PinMask;
     *_PCICR |= _PortMask;
 #ifndef CAN_NO_INTERRUPTS
 	PortToCAN[digitalPinToPCICRbit(_IntPin)] = this;
@@ -332,6 +332,7 @@ void SPICAN::handleInterrupt() {
 			continue;
 		} else {
 			//Blah blah buffer logic here
+			break;
 		}
 	} while (available);
 }
