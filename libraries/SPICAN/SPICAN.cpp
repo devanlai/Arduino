@@ -26,6 +26,10 @@ CanMessage::CanMessage(int _id, const char * _data, char _len) {
   len = _len;
 }
 
+#ifdef HAVE_CAN
+extern SPICAN CAN(CAN_CS, CAN_INT);
+#endif
+
 #ifndef CAN_NO_INTERRUPTS
 #define DISABLE_INTERRUPT() *_PCICR &=~ _PortMask
 #define ENABLE_INTERRUPT()  *_PCICR |=  _PortMask
@@ -36,10 +40,6 @@ CanMessage::CanMessage(int _id, const char * _data, char _len) {
 
 #ifndef CAN_NO_INTERRUPTS
 SPICAN* PortToCAN[CAN_PCINT_COUNT] = {NULL};
-
-#ifdef HAVE_CAN
-extern SPICAN CAN(CAN_CS, CAN_INT);
-#endif
 
 //Soft interrupt handlers - if you define CAN_RESERVE_PCINTx,
 //then you can define your own PCINTx ISR
